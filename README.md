@@ -1,6 +1,10 @@
 # Robot Simulation with V-REP
 
-Repository for ELEC4010K course project, Fall 2019. This is a simulation of 
+Repository for ELEC4010K course project, Fall 2019. This is a simulation of a differential drive robot with ROS and the V-REP simulator, performing the following tasks:
+
+* Mapping with simulated Lidar data using Hector SLAM
+* Face recognition and localization
+* Visual servoing
 
 ### Robot control in V-REP
 
