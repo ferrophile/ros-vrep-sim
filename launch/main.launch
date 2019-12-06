@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+
+<launch>
+  <node pkg="ball_tracker" type="ball_tracker.py" name="ball_tracker"/>
+</launch>
