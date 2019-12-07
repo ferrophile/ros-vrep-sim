@@ -8,6 +8,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 # ROS dependencies
 import rospy
+from std_msgs.msg import Bool
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
 
@@ -17,6 +18,14 @@ DIST_CONST = 1000.0
 
 linear_pid = PID(0.05, 0.004, 0.01, setpoint=8)
 angular_pid = PID(0.010, 0.002, 0.003, setpoint=256)
+
+laser_scan_on = True
+
+def track_cmd_callback(msg):
+    global laser_scan_on
+    laser_scan_on = msg.data
+    linear_pid.Ki = 0
+    angular_pid.Ki = 0
 
 def image_callback(msg):
     cv2_img = None
@@ -32,7 +41,7 @@ def image_callback(msg):
 
     _, contours, _ = cv2.findContours(yellow_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    if len(contours) == 0:
+    if len(contours) == 0 or laser_scan_on:
         return
 
     max_contour_id = np.argmax([len(c) for c in contours])
@@ -53,7 +62,7 @@ def image_callback(msg):
     pub.publish(twist)
 
     # Debug window
-    '''
+    #'''
     coords = center.astype(int)
     marked_img = cv2_img.copy()
     cv2.drawContours(marked_img, [max_contour], -1, (0, 0, 255), 2)
@@ -61,8 +70,7 @@ def image_callback(msg):
     cv2.line(marked_img, tuple(coords + [-6, 6]), tuple(coords + [6, -6]), (0, 0, 255), 2)
     cv2.imshow('debug', marked_img)
     cv2.waitKey(1)
-
-    '''
+    #'''
 
     # Generate images for report
     '''
@@ -73,8 +81,8 @@ def image_callback(msg):
 
 def main():
     rospy.init_node('ball_tracker')
-    image_topic = "/vrep/image"
-    rospy.Subscriber(image_topic, Image, image_callback)
+    rospy.Subscriber('/vrep/laser_switch', Bool, track_cmd_callback)
+    rospy.Subscriber('/vrep/image', Image, image_callback)
     rospy.spin()
 
 if __name__ == '__main__':
